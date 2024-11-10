@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-function QuestionForm(props) {
+function QuestionForm({ onNewQuestion }) {
   const [formData, setFormData] = useState({
     prompt: "",
     answer1: "",
@@ -10,6 +10,7 @@ function QuestionForm(props) {
     correctIndex: 0,
   });
 
+  // Handle changes in form fields
   function handleChange(event) {
     setFormData({
       ...formData,
@@ -17,9 +18,48 @@ function QuestionForm(props) {
     });
   }
 
-  function handleSubmit(event) {
+  // Handle form submission
+  async function handleSubmit(event) {
     event.preventDefault();
-    console.log(formData);
+
+    // Prepare the question object to be sent to the API
+    const newQuestion = {
+      prompt: formData.prompt,
+      answers: [formData.answer1, formData.answer2, formData.answer3, formData.answer4],
+      correctIndex: parseInt(formData.correctIndex), // Ensure it's an integer
+    };
+
+    try {
+      // Send POST request to the API
+      const response = await fetch("http://localhost:4000/questions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newQuestion),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to add new question");
+      }
+
+      const data = await response.json();
+
+      // Pass the new question to the parent component to update the question list
+      onNewQuestion(data); // Add the new question to the list
+
+      // Reset the form
+      setFormData({
+        prompt: "",
+        answer1: "",
+        answer2: "",
+        answer3: "",
+        answer4: "",
+        correctIndex: 0,
+      });
+    } catch (error) {
+      console.error("Error:", error);
+    }
   }
 
   return (
@@ -33,6 +73,7 @@ function QuestionForm(props) {
             name="prompt"
             value={formData.prompt}
             onChange={handleChange}
+            required
           />
         </label>
         <label>
@@ -42,6 +83,7 @@ function QuestionForm(props) {
             name="answer1"
             value={formData.answer1}
             onChange={handleChange}
+            required
           />
         </label>
         <label>
@@ -51,6 +93,7 @@ function QuestionForm(props) {
             name="answer2"
             value={formData.answer2}
             onChange={handleChange}
+            required
           />
         </label>
         <label>
@@ -60,6 +103,7 @@ function QuestionForm(props) {
             name="answer3"
             value={formData.answer3}
             onChange={handleChange}
+            required
           />
         </label>
         <label>
@@ -69,6 +113,7 @@ function QuestionForm(props) {
             name="answer4"
             value={formData.answer4}
             onChange={handleChange}
+            required
           />
         </label>
         <label>
@@ -77,6 +122,7 @@ function QuestionForm(props) {
             name="correctIndex"
             value={formData.correctIndex}
             onChange={handleChange}
+            required
           >
             <option value="0">{formData.answer1}</option>
             <option value="1">{formData.answer2}</option>
