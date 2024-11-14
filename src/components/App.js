@@ -9,13 +9,24 @@ function App() {
 
   // Fetch initial questions when the component mounts
   useEffect(() => {
+    let isMounted = true; // Prevent state updates if unmounted
+
     const fetchQuestions = async () => {
-      const response = await fetch("http://localhost:4000/questions");
-      const data = await response.json();
-      setQuestions(data); // Set the initial questions
+      try {
+        const response = await fetch("http://localhost:4000/questions");
+        if (!response.ok) throw new Error("Failed to fetch questions");
+        const data = await response.json();
+        if (isMounted) setQuestions(data); // Set the initial questions if component is still mounted
+      } catch (error) {
+        console.error("Error fetching questions:", error);
+      }
     };
 
     fetchQuestions();
+
+    return () => {
+      isMounted = false; // Cleanup when component unmounts
+    };
   }, []);
 
   // Add a new question to the list
